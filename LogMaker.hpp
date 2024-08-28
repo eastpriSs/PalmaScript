@@ -1,8 +1,5 @@
 #pragma once 
 #include "Token.hpp"
-#include <intrin.h>
-
-#pragma intrinsic(__stosb)
 
 namespace iLogMaker
 {

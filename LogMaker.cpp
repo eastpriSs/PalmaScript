@@ -1,6 +1,9 @@
 #include "LogMaker.hpp"
 #include "LineDriver.hpp"
 #include <stdio.h>
+#include <intrin.h>
+
+#pragma intrinsic(__stosb)
 
 void iLogMaker::logMaker::log(std::string error_info) const
 {
