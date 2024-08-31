@@ -4,8 +4,13 @@ Int128::Int128(std::string numStrView)
 {
     len = numStrView.size();
     sign = numStrView[0] == '-';
+
+    for (int i = Int128Private::amountDigit - 1; i >= len; --i)
+        digits[i] = 0;
+
     for (int i = len - 1; i >= static_cast<int>(sign); --i)
         digits[len - i - 1] = numStrView[i] - '0';
+    
     if (sign) len -= 1;
 }
 
@@ -16,20 +21,16 @@ Int128::Int128(size_t lenNum)
         digits[i] = 0;
 }
 
-// 1 + 90 = 90 <- problem
-// 10 + 90 = 00 <- problem
 Int128& Int128::operator+=(const Int128& rhs)
 {
-    unsigned short maxLength;
-
-    maxLength = std::max(this->len, rhs.len);
+    this->len = std::max(this->len, rhs.len);
 
     // when - and -
     if (this->sign && rhs.sign)
         this->sign = true;
 
     if (this->sign ^ rhs.sign) {
-        *this = difference(*this, rhs, maxLength);
+        *this = difference(*this, rhs, this->len);
         this->sign = (abslBigger(*this, rhs)) ? this->sign : rhs.sign;
         return *this;
     }
@@ -38,11 +39,10 @@ Int128& Int128::operator+=(const Int128& rhs)
     uint8_t base = 10;
     uint8_t carry = 0;
 
-    for (size_t i = 0; i < maxLength; ++i)
+    for (size_t i = 0; i < this->len; ++i)
     {
-        sumDigits = this->digits[i] + rhs.digits[i] + carry;
-        this->digits[i] = sumDigits;
-        carry = sumDigits / base;
+        this->digits[i] += rhs.digits[i] + carry;
+        carry = this->digits[i] / base;
         this->digits[i] %= base;
     }
 
@@ -135,43 +135,6 @@ const Int128 operator+(Int128&& lhs, Int128&& rhs)
 const Int128 operator+(Int128& lhs, const Int128& rhs)
 {
     return lhs += rhs;
-    /*Int128 res;
-    unsigned short min_l;
-
-    min_l = std::min(lhs.len, rhs.len);
-
-    // when - and -
-    if (lhs.sign && rhs.sign)
-        res.sign = true;
-
-    if (lhs.sign ^ rhs.sign) {
-        res = difference(lhs, rhs, min_l);
-        res.sign = (abslBigger(lhs, rhs)) ? lhs.sign : rhs.sign;
-        return res;
-    }
-
-    if (lhs.len > rhs.len)
-        res = lhs;
-    else
-        res = rhs;
-
-    uint8_t sumDigits = 0;
-    uint8_t base = 10;
-    uint8_t carry = 0;
-
-    for (size_t i = 0; i < min_l; ++i)
-    {
-        sumDigits = lhs.digits[i] + rhs.digits[i] + carry;
-        res.digits[i] = sumDigits;
-        carry = sumDigits / base;
-        res.digits[i] %= base;
-    }
-
-    if (carry != 0) {
-        res.overflow = 1;
-    }
-
-    return res;*/
 }
 
 const Int128 operator*(const Int128& lhs, const Int128& rhs)
