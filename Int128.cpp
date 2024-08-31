@@ -16,6 +16,48 @@ Int128::Int128(size_t lenNum)
         digits[i] = 0;
 }
 
+// 1 + 90 = 90 <- problem
+// 10 + 90 = 00 <- problem
+Int128& Int128::operator+=(const Int128& rhs)
+{
+    unsigned short maxLength;
+
+    maxLength = std::max(this->len, rhs.len);
+
+    // when - and -
+    if (this->sign && rhs.sign)
+        this->sign = true;
+
+    if (this->sign ^ rhs.sign) {
+        *this = difference(*this, rhs, maxLength);
+        this->sign = (abslBigger(*this, rhs)) ? this->sign : rhs.sign;
+        return *this;
+    }
+
+    uint8_t sumDigits = 0;
+    uint8_t base = 10;
+    uint8_t carry = 0;
+
+    for (size_t i = 0; i < maxLength; ++i)
+    {
+        sumDigits = this->digits[i] + rhs.digits[i] + carry;
+        this->digits[i] = sumDigits;
+        carry = sumDigits / base;
+        this->digits[i] %= base;
+    }
+
+    if (carry != 0) {
+        if (this->len < Int128Private::amountDigit) {
+            this->len += 1;
+            this->digits[this->len - 1] = carry;
+        }
+        else {
+            this->overflow = true;
+        }
+    }
+    return *this;
+}
+
 void printInt128(const Int128& num)
 {
     if (num.sign) printf("-");
@@ -78,9 +120,22 @@ bool operator<(const Int128& lhs, const Int128& rhs)
     return rhs < lhs;
 }
 
-Int128 operator+(const Int128& lhs, const Int128& rhs)
+
+const Int128 operator+(const Int128& lhs, const Int128& rhs) 
 {
-    Int128 res;
+    Int128 res = lhs;
+    return res += rhs;
+}
+
+const Int128 operator+(Int128&& lhs, Int128&& rhs) 
+{
+    return lhs += rhs;
+}
+
+const Int128 operator+(Int128& lhs, const Int128& rhs)
+{
+    return lhs += rhs;
+    /*Int128 res;
     unsigned short min_l;
 
     min_l = std::min(lhs.len, rhs.len);
@@ -116,6 +171,27 @@ Int128 operator+(const Int128& lhs, const Int128& rhs)
         res.overflow = 1;
     }
 
+    return res;*/
+}
+
+const Int128 operator*(const Int128& lhs, const Int128& rhs)
+{
+    Int128 res;
+    int sconst = -1;
+    // if one of them small constant    
+    if (lhs.len == 1) {
+        sconst = lhs.digits[0];
+        res = rhs;
+    }
+    else if (rhs.len == 1) {
+        sconst = rhs.digits[0];
+        res = lhs;
+    }
+
+    for (int i = 0; i < sconst; ++i) {
+        res += res;
+    }
+
     return res;
 }
 
@@ -140,7 +216,7 @@ Int128 difference(const Int128& lhs, const Int128& subtractedNumber, const unsig
     return res;
 }
 
-Int128 operator-(const Int128& lhs, const Int128& rhs)
+const Int128 operator-(const Int128& lhs, const Int128& rhs)
 {
     Int128 res;
     const Int128* subtractedNumber = nullptr;
