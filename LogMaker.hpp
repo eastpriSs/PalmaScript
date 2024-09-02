@@ -13,7 +13,7 @@ namespace iLogMaker
     public:
 
         void log(std::string) const;
-
+        
         static logMaker& instance(const Token::Token* crtkn)
         {
             static logMaker singelton = {};

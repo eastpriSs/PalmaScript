@@ -81,13 +81,13 @@ bool operator>(const Int128& lhs, const Int128& rhs)
 {
     if (lhs.sign ^ rhs.sign)
         return !(lhs.sign > rhs.sign);
-
+    
     if (lhs.len != rhs.len)
         return (lhs.sign && rhs.sign) ? !(lhs.len > rhs.len) : (lhs.len > rhs.len);
 
     for (int i = lhs.len - 1; i >= 0; --i)
-        if (lhs.digits[i] > rhs.digits[i])      return !(lhs.sign && rhs.sign);
-        else if (lhs.digits[i] < rhs.digits[i]) return !(rhs.sign && lhs.sign);
+        if (lhs.digits[i] > rhs.digits[i])      return true;
+        else if (lhs.digits[i] < rhs.digits[i]) return false;
 
     return false;
 }
@@ -139,30 +139,30 @@ const Int128 operator+(Int128& lhs, const Int128& rhs)
 
 const Int128 operator*(const Int128& lhs, const Int128& rhs)
 {
-    Int128 res;
+    Int128 res = {};
+    Int128 sumNumber = {};
     int sconst = -1;
-    // if one of them small constant    
+    // if one of them small const    
     if (lhs.len == 1) {
         sconst = lhs.digits[0];
-        res = rhs;
+        sumNumber = rhs;
     }
     else if (rhs.len == 1) {
         sconst = rhs.digits[0];
-        res = lhs;
+        sumNumber = lhs;
     }
 
     for (int i = 0; i < sconst; ++i) {
-        res += res;
+        res += sumNumber;
     }
-
     return res;
 }
 
 Int128 difference(const Int128& lhs, const Int128& subtractedNumber, const unsigned short& min_l)
 {
     Int128 res = lhs;
-    res.sign = false;
     int8_t subtrDigits = 0;
+    
     for (size_t i = 0; i < min_l; ++i)
     {
         subtrDigits = res.digits[i] - subtractedNumber.digits[i];
@@ -176,6 +176,7 @@ Int128 difference(const Int128& lhs, const Int128& subtractedNumber, const unsig
         res.digits[i] = subtrDigits;
     }
     while (res.digits[res.len - 1] == 0) res.len -= 1;
+    
     return res;
 }
 
@@ -184,42 +185,43 @@ const Int128 operator-(const Int128& lhs, const Int128& rhs)
     Int128 res;
     const Int128* subtractedNumber = nullptr;
     unsigned short min_l = 0;
+    bool signOfResult = false;
 
     // when lhs is - and rhs is +
     if (lhs.sign && (rhs.sign == false))
     {
         res = lhs + rhs;
-        res.sign = true;
+        signOfResult = true;
         return res;
     }
     // when lhs is + and rhs is -
     else if ((lhs.sign == false) && rhs.sign)
     {
         res = lhs + rhs;
-        res.sign = false;
+        signOfResult = false;
         return res;
     }
 
     //when lhs is + and rhs is +
     //when lhs is - and rhs is -
-    if (lhs.len > rhs.len) {
+    if (lhs > rhs) {
         res = lhs;
         subtractedNumber = &rhs;
         min_l = rhs.len;
-        res.sign = lhs.sign;
+        signOfResult = lhs.sign;
     }
-    else if (lhs.len == rhs.len)
+    else if (lhs == rhs)
     {
         // -lhs -(-rhs)
         if (lhs > rhs) {
             res = lhs;
             subtractedNumber = &rhs;
-            res.sign = true;
+            signOfResult = true;
         }
         else {
             res = rhs;
             subtractedNumber = &lhs;
-            res.sign = false;
+            signOfResult = false;
         }
         min_l = lhs.len;
     }
@@ -227,21 +229,10 @@ const Int128 operator-(const Int128& lhs, const Int128& rhs)
         res = rhs;
         subtractedNumber = &lhs;
         min_l = lhs.len;
+        signOfResult = true;
     }
 
-    uint8_t subtrDigits = 0;
-    for (size_t i = 0; i < min_l; ++i)
-    {
-        subtrDigits = res.digits[i] - subtractedNumber->digits[i];
-        if (subtrDigits < 0) {
-            int iterNumber = i;
-            while (res.digits[++iterNumber] == 0) { res.digits[iterNumber] = 9; }
-            res.digits[iterNumber] -= 1;
-            if (res.digits[iterNumber] == 0) res.len -= 1;
-            subtrDigits += 10;
-        }
-        res.digits[i] = subtrDigits;
-    }
-    while (res.digits[res.len - 1] == 0) res.len -= 1;
+    res = difference(res, *subtractedNumber, min_l);
+    res.sign = signOfResult;
     return res;
 }

@@ -22,3 +22,9 @@ void Parser::ErrorMessage::expectedOneOf(const std::set<Token::ttype>& exlist, v
 {
     iLogMaker::logMaker::instance(&currtk).log(ErrorsMessage::Generate::unexpectedLex(currtk.type, exlist));
 }
+
+void Parser::ErrorMessage::expectedOneOf(std::set<Token::ttype>&& exlist, void (*)(),
+    const Token::Token& currtk)
+{
+    iLogMaker::logMaker::instance(&currtk).log(ErrorsMessage::Generate::unexpectedLex(currtk.type, exlist));
+}

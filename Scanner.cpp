@@ -19,6 +19,8 @@ Token::Token Scanner::scanOneCharToken(char c)
     case ')': return Token::Token(')', Token::ttype::lrpar);
     case '+': return Token::Token('+', Token::ttype::lplus);
     case '-': return Token::Token('-', Token::ttype::lminus);
+    case '*': return Token::Token('*', Token::ttype::lmult);
+    case '/': return Token::Token('/', Token::ttype::ldiv);
     }
     return Token::Token();
 }

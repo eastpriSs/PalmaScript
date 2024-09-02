@@ -50,6 +50,14 @@ namespace Interpreter {
         {
             return ast.lhs->accept(*this) + ast.rhs->accept(*this);
         }
+        Int128 visitExpr(ExprSub& ast) override
+        {
+            return ast.lhs->accept(*this) - ast.rhs->accept(*this);
+        }
+        Int128 visitExpr(ExprMult& ast) override
+        {
+            return ast.lhs->accept(*this) * ast.rhs->accept(*this);;
+        }
 
     public:
 
