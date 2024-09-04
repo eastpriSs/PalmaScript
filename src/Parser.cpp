@@ -1,7 +1,5 @@
 #include "Parser.hpp"
 
-//#include <iostream>
-
 // TODO replace all 'new' ->  'unique_ptr'
 
 Parser::Parser::Parser(Scanner& s) 
@@ -22,15 +20,13 @@ ExprAST* Parser::Parser::parsePrimary()
         return new ExprVariable(new NodeNameOfIdentificator(currTkn.lex.strview));
 
     case Token::ttype::llpar:
-        _scn->scan(); // eat '('
         ExprAST* expr = parseExpr();
-        currTkn = _scn->scan(); // eat ')'
-        checkLex(Token::ttype::llpar, currTkn);
+        checkLex(Token::ttype::lrpar, currTkn);
         return expr;
-
-    // default: throw warning
-
     }
+
+    Warning::replacingToken(currTkn);
+    return new ExprInt128(new NodeInt128("0")); // TODO fix constructor NodeInt128(0)
 }
 
 // TODO: exceptions
@@ -40,6 +36,7 @@ ExprAST* Parser::Parser::parseTerm()
 
     ExprAST* lhs = parsePrimary();
     currTkn = _scn->scan();
+    
     while (currTkn.type == ttype::lmult || currTkn.type == ttype::ldiv)
     {
         ttype oper = currTkn.type;        
@@ -56,23 +53,23 @@ ExprAST* Parser::Parser::parseTerm()
     return lhs;
 }
 
-// TODO fix incorrect parsing (expr)
+// TODO update parsing (expr)
 ExprAST* Parser::Parser::parseExpr()
 {
     using namespace Token;
-    using namespace ErrorMessage;
+    using namespace Error;
 
     ExprAST* lhs = parseTerm();
+    
     bool currLexPlusOrMinus = (currTkn.type == ttype::lplus || currTkn.type == ttype::lminus);
     
     if (!currLexPlusOrMinus && !(currTkn.type == ttype::leof))
         expectedOneOf({ ttype::lplus, ttype::lminus }, butfound, currTkn); // throw warning to user
-   
+
     while (currLexPlusOrMinus)
     {
         ttype oper = currTkn.type;
         ExprAST* rhs = parseTerm();
-        printf("%s", currTkn.lex.strview.c_str());
         switch (oper)
         {
         case ttype::lplus:
@@ -81,6 +78,9 @@ ExprAST* Parser::Parser::parseExpr()
         case ttype::lminus:
             lhs = new ExprSub(lhs, rhs);
             break;
+        case ttype::lrpar: // ??
+            break;
+
         default:
             expectedOneOf({ ttype::lplus, ttype::lminus }, butfound, currTkn);
         }
@@ -96,7 +96,7 @@ ExprAST* Parser::Parser::parseExpr()
 Int128AsgAST* Parser::Parser::parseIntVarDefinition()
 {
     using namespace Token;
-    using namespace ErrorMessage;
+    using namespace Error;
 
     static std::set<ttype> possibleTokens = { ttype::lname, ttype::lasg };
 

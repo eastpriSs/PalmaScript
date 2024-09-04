@@ -1,41 +1,39 @@
 #include "ErrorsMessageMaker.hpp"
 
-std::string ErrorsMessage::Generate::unexpectedLex(const ttype& foundlex, const ttype& ex)
+ErrorsMessage::Generate::UnexpectedLex::UnexpectedLex(const ttype& foundlex, const ttype& ex)
 {
     // TODO
-    std::string er_str = "expected ";
-    er_str += tempatesForErrors[ex];
-    er_str += " but found ";
-    er_str += tempatesForErrors[foundlex];
-    return er_str;
+    message = "expected ";
+    message += tempatesForErrors[ex];
+    message += " but found ";
+    message += tempatesForErrors[foundlex];
 }
 
-std::string ErrorsMessage::Generate::unexpectedLex(const ttype& foundlex, const std::set<ttype>& exlist)
+ErrorsMessage::Generate::UnexpectedLex::UnexpectedLex(const ttype& foundlex, const std::set<ttype>& exlist)
 {
     static constexpr char enter[] = "\n";
-    std::string er_str = "Probably, expected one of this lexems: ";
+    message = "Probably, expected one of this lexems: ";
 
     std::for_each(exlist.begin(), exlist.end(),
         [&](const ttype& i)
         {
-            er_str += enter;
-            er_str += tempatesForErrors[i];
+            message += enter;
+            message += tempatesForErrors[i];
         });
-    er_str += "\nbut found ";
-    er_str += tempatesForErrors[foundlex];
-
-    return er_str;
+    message += "\nbut found ";
+    message += tempatesForErrors[foundlex];
 }
 
-std::string ErrorsMessage::Generate::undefinedVar(const std::string& id)
+inline std::string ErrorsMessage::Generate::UnexpectedLex::what() const { return message; }
+
+ErrorsMessage::Generate::UndefinedVar::UndefinedVar(const std::string& id)
 {
-    std::string er_str = "variable ";
-    er_str += id;
-    er_str += "was not defined";
-    return er_str;
+    idname = &id;
 }
 
-std::string ErrorsMessage::Generate::inconsistency_of_types()
+std::string ErrorsMessage::Generate::UndefinedVar::what() const
 {
-    return "inconsistency_of_types";
+    std::string mes = "did not find ";
+    mes += *idname;
+    return mes;
 }

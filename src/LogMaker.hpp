@@ -1,5 +1,6 @@
 #pragma once 
 #include "Token.hpp"
+#include "ErrorsMessageMaker.hpp"
 
 namespace iLogMaker
 {
@@ -12,7 +13,8 @@ namespace iLogMaker
 
     public:
 
-        void log(std::string) const;
+        void log(ErrorsMessage::Generate::Error*) const;
+        void log(WarningMessage::Generate::Warning*) const;
         
         static logMaker& instance(const Token::Token* crtkn)
         {

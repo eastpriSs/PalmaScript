@@ -6,7 +6,7 @@
 
 namespace ErrorsMessagePrivate
 {
-    using namespace Token;
+    using Token::ttype;
 
     static std::unordered_map<ttype, std::string> tempatesForErrors =
     {
@@ -27,27 +27,37 @@ namespace ErrorsMessagePrivate
 namespace ErrorsMessage
 {
     using namespace ErrorsMessagePrivate;
-    using namespace Token;
     
     namespace Generate
     {
-        /*class Error
-        {
-        public:
-            virtual std::string what() const;
-        };
-        class UnexpectedLex : Error
-        {
-        public:
-            UnexpectedLex(const ttype&, const ttype&);
-            UnexpectedLex(const ttype&, const std::set<ttype>&);
-            std::string what
-        };*/
+        using Token::ttype;
 
-        std::string unexpectedLex(const ttype&, const ttype&);
-        std::string unexpectedLex(const ttype&, const std::set<ttype>&);
-        std::string undefinedVar(const std::string&);
-        std::string inconsistency_of_types();
+        class Error
+        {
+        public:
+            virtual std::string what() const = 0;
+        };
+        
+        class UnexpectedLex : public Error
+        {
+        private:
+            std::string message;
+        
+        public:
+            UnexpectedLex(const Token::ttype&, const ttype&);
+            UnexpectedLex(const ttype&, const std::set<ttype>&);
+            inline std::string what() const override;
+        };
+
+        class UndefinedVar : public Error
+        {
+        private:
+            const std::string* idname;
+                            
+        public:
+            UndefinedVar(const std::string&);
+            std::string what() const override;
+        };
     }
 }
 
@@ -55,10 +65,25 @@ namespace ErrorsMessage
 namespace WarningMessage
 {
     using namespace ErrorsMessagePrivate;
-    using namespace Token;
 
     namespace Generate
     {
-        std::string unexpectedLex(const ttype&);
+        using Token::ttype;
+
+        class Warning
+        {
+        public:
+            virtual std::string what() const = 0;
+        };
+
+        class UnexpectedLex : public Warning
+        {
+        private:
+            const ttype* foundlex;
+
+        public:
+            UnexpectedLex(const ttype&);
+            inline std::string what() const override;
+        };
     }
 }

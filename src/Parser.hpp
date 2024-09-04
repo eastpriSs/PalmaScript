@@ -30,7 +30,7 @@ namespace Parser {
     private: Scanner* _scn;
     };
 
-    namespace ErrorMessage 
+    namespace Error
     {
         static constexpr void butfound() {}
 
@@ -38,14 +38,15 @@ namespace Parser {
         void expectedOneOf(const std::set<Token::ttype>&, void (*)(), const Token::Token&);
         void expectedOneOf(std::set<Token::ttype>&&, void (*)(), const Token::Token&);
     };
+
+    namespace Warning
+    {       
+        void replacingToken(const Token::Token&);
+    };
+
+
     
     // warning! function with side-effect
     void checkLex(Token::ttype&&, const Token::Token&);
 
 };
-
-/*namespace ParserStuff
-{
-
-    bool equal(const Token::ttype& x, Token::ttype&&);
-}*/
